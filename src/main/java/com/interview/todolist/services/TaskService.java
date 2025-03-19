@@ -1,5 +1,6 @@
 package com.interview.todolist.services;
 
+import com.interview.todolist.dtos.TaskDTO;
 import com.interview.todolist.models.Task;
 import com.interview.todolist.repositories.TaskRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,11 +18,13 @@ public class TaskService {
     @Autowired
     private TaskRepository taskRepository;
 
-    public Task createTask(Task task){
-        return taskRepository.save(task);
+    public TaskDTO createTask(Task task) {
+        Task savedTask = taskRepository.save(task);
+        return new TaskDTO(savedTask.getId(), savedTask.getTitle(), savedTask.getDescription(),
+                savedTask.getDueDate(), savedTask.getPriority(), savedTask.isCompleted());
     }
 
-    public Page<Task> getAllTasks(String filterBy, String filterValue, int page, int size) {
+    public Page<TaskDTO> getAllTasks(String filterBy, String filterValue, int page, int size) {
         int adjustedPage = page - 1;
         if (adjustedPage < 0) {
             adjustedPage = 0;
@@ -39,36 +42,39 @@ public class TaskService {
                 case "title":
                     return taskRepository.findByTitleContaining(filterValue, pageable);
                 default:
-                    return taskRepository.findAll(pageable);
+                    return taskRepository.findAllDTO(pageable);
             }
         }
-        return taskRepository.findAll(pageable);
+        return taskRepository.findAllDTO(pageable);
     }
 
-    public Optional<Task> getTaskById(Long taskId){
-        return taskRepository.findById(taskId);
+    public Optional<TaskDTO> getTaskById(Long taskId) {
+        return taskRepository.findDTOById(taskId);
     }
 
     @Transactional
-    public Task updateTask(Long id, Task taskDetails){
+    public TaskDTO updateTask(Long id, Task taskDetails) {
         Task task = taskRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Task not found"));
         task.setTitle(taskDetails.getTitle());
         task.setDescription(taskDetails.getDescription());
         task.setDueDate(taskDetails.getDueDate());
         task.setPriority(taskDetails.getPriority());
         task.setCompleted(taskDetails.isCompleted());
-        return taskRepository.save(task);
+        Task updatedTask = taskRepository.save(task);
+        return new TaskDTO(updatedTask.getId(), updatedTask.getTitle(), updatedTask.getDescription(),
+                updatedTask.getDueDate(), updatedTask.getPriority(), updatedTask.isCompleted());
     }
 
+    @Transactional
     public void deleteTask(Long id) {
         taskRepository.deleteById(id);
     }
 
     @Transactional
-    public Task addDependency(Long taskId, Long dependencyId) {
-        Task task = taskRepository.findById(taskId)
+    public TaskDTO addDependency(Long taskId, Long dependencyId) {
+        Task task = taskRepository.findByIdWithDependencies(taskId)
                 .orElseThrow(() -> new IllegalArgumentException("Task not found"));
-        Task dependency = taskRepository.findById(dependencyId)
+        Task dependency = taskRepository.findByIdWithDependencies(dependencyId)
                 .orElseThrow(() -> new IllegalArgumentException("Dependency not found"));
 
         if (hasCircularDependency(task, dependency)) {
@@ -78,7 +84,9 @@ public class TaskService {
             throw new IllegalArgumentException("Dependency task must be completed before this task can be added");
         }
         task.getDependencies().add(dependency);
-        return taskRepository.save(task);
+        Task updatedTask = taskRepository.save(task);
+        return new TaskDTO(updatedTask.getId(), updatedTask.getTitle(), updatedTask.getDescription(),
+                updatedTask.getDueDate(), updatedTask.getPriority(), updatedTask.isCompleted());
     }
 
     private boolean hasCircularDependency(Task task, Task dependency) {
@@ -102,14 +110,16 @@ public class TaskService {
 
     @Transactional
     public void removeDependency(Long taskId, Long dependencyId) {
-        Task task = taskRepository.findById(taskId).orElseThrow(() -> new IllegalArgumentException("Task not found"));
-        Task dependency = taskRepository.findById(dependencyId).orElseThrow(() -> new IllegalArgumentException("Dependency not found"));
+        Task task = taskRepository.findByIdWithDependencies(taskId)
+                .orElseThrow(() -> new IllegalArgumentException("Task not found"));
+        Task dependency = taskRepository.findByIdWithDependencies(dependencyId)
+                .orElseThrow(() -> new IllegalArgumentException("Dependency not found"));
         task.getDependencies().remove(dependency);
         taskRepository.save(task);
     }
 
-    public List<Task> getTaskDependencies(Long taskId) {
-        Task task = taskRepository.findById(taskId)
+    public List<TaskDTO> getTaskDependencies(Long taskId) {
+        Task task = taskRepository.findByIdWithDependencies(taskId)
                 .orElseThrow(() -> new IllegalArgumentException("Task not found"));
 
         Set<Task> visited = new HashSet<>();
@@ -117,7 +127,10 @@ public class TaskService {
 
         collectDependencies(task, visited, allDependencies);
 
-        return new ArrayList<>(allDependencies);
+        return allDependencies.stream()
+                .map(dep -> new TaskDTO(dep.getId(), dep.getTitle(), dep.getDescription(),
+                        dep.getDueDate(), dep.getPriority(), dep.isCompleted()))
+                .toList();
     }
 
     private void collectDependencies(Task task, Set<Task> visited, Set<Task> allDependencies) {
@@ -130,5 +143,4 @@ public class TaskService {
             collectDependencies(dependency, visited, allDependencies);
         }
     }
-
 }
