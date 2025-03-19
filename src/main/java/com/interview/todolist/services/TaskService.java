@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.*;
 
 @Service
@@ -20,23 +21,28 @@ public class TaskService {
         return taskRepository.save(task);
     }
 
-    public List<Task> getAllTasks(String filterBy, String filterValue, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
+    public Page<Task> getAllTasks(String filterBy, String filterValue, int page, int size) {
+        int adjustedPage = page - 1;
+        if (adjustedPage < 0) {
+            adjustedPage = 0;
+        }
+
+        Pageable pageable = PageRequest.of(adjustedPage, size);
         if (filterBy != null && filterValue != null) {
             switch (filterBy.toLowerCase()) {
                 case "priority":
-                    Page<Task> priorityPage = taskRepository.findByPriority(filterValue, pageable);
-                    return priorityPage.getContent();
+                    return taskRepository.findByPriority(filterValue, pageable);
                 case "completed":
-                    Page<Task> completedPage = taskRepository.findByCompleted(Boolean.parseBoolean(filterValue), pageable);
-                    return completedPage.getContent();
+                    return taskRepository.findByCompleted(Boolean.parseBoolean(filterValue), pageable);
+                case "duedate":
+                    return taskRepository.findByDueDate(LocalDate.parse(filterValue), pageable);
+                case "title":
+                    return taskRepository.findByTitleContaining(filterValue, pageable);
                 default:
-                    Page<Task> allPage = taskRepository.findAll(pageable);
-                    return allPage.getContent();
+                    return taskRepository.findAll(pageable);
             }
         }
-        Page<Task> allPage = taskRepository.findAll(pageable);
-        return allPage.getContent();
+        return taskRepository.findAll(pageable);
     }
 
     public Optional<Task> getTaskById(Long taskId){
@@ -120,7 +126,6 @@ public class TaskService {
         if (visited.contains(task)) {
             return;
         }
-
         visited.add(task);
         for (Task dependency : task.getDependencies()) {
             allDependencies.add(dependency);

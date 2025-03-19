@@ -1,9 +1,11 @@
 package com.interview.todolist.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -22,6 +24,6 @@ public class Task {
     @JoinTable(name = "task_dependencies",
             joinColumns = @JoinColumn(name = "task_id"),
             inverseJoinColumns = @JoinColumn(name = "dependency_id"))
-    private Set<Task> dependencies;
+    private Set<Task> dependencies = new HashSet<>();
 
 }

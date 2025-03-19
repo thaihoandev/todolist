@@ -1,9 +1,12 @@
 package com.interview.todolist.controllers;
 
+import com.interview.todolist.dtos.PagedResponse;
 import com.interview.todolist.models.Task;
 import com.interview.todolist.services.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,13 +27,15 @@ public class TaskController {
     }
 
     // Get all tasks
-    @GetMapping
-    public ResponseEntity<List<Task>> getAllTasks(@RequestParam(required = false) String filterBy,
-                                                  @RequestParam(required = false) String filterValue,
-                                                  @RequestParam(defaultValue = "0") int page,
-                                                  @RequestParam(defaultValue = "10") int size) {
-        List<Task> tasks = taskService.getAllTasks(filterBy, filterValue, page, size);
-        return new ResponseEntity<>(tasks, HttpStatus.OK);
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<PagedResponse<Task>> getAllTasks(
+            @RequestParam(required = false) String filterBy,
+            @RequestParam(required = false) String filterValue,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Page<Task> tasks = taskService.getAllTasks(filterBy, filterValue, page, size);
+        PagedResponse<Task> response = new PagedResponse<>(tasks);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     // Get task by ID
@@ -74,7 +79,7 @@ public class TaskController {
     }
 
     // Get dependencies of a task
-    @GetMapping("/{taskId}/dependencies")
+    @GetMapping(value = "/{taskId}/dependencies", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<Task>> getTaskDependencies(@PathVariable Long taskId) {
         try {
             List<Task> dependencies = taskService.getTaskDependencies(taskId);
