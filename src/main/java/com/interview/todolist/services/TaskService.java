@@ -81,7 +81,6 @@ public class TaskService {
         return taskRepository.save(task);
     }
 
-    // check for circular dependencies
     private boolean hasCircularDependency(Task task, Task dependency) {
         Set<Task> visited = new HashSet<>();
         return checkCircular(task, dependency, visited);
@@ -98,7 +97,6 @@ public class TaskService {
                 return true;
             }
         }
-
         return false;
     }
 
