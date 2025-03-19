@@ -1,6 +1,5 @@
 package com.interview.todolist.models;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 

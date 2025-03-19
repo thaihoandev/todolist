@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 public interface TaskRepository extends JpaRepository<Task, Long> {
@@ -32,4 +33,10 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 
     @Query("SELECT t FROM Task t LEFT JOIN FETCH t.dependencies WHERE t.id = :id")
     Optional<Task> findByIdWithDependencies(@Param("id") Long id);
+
+    @Query("SELECT t FROM Task t WHERE t.dueDate < :dueDate AND t.completed = false")
+    List<Task> findByDueDateBeforeAndCompletedIsFalse(@Param("dueDate") LocalDate dueDate);
+
+    @Query("SELECT t FROM Task t WHERE t.dueDate = :dueDate")
+    List<Task> findTasksByDueDate(@Param("dueDate") LocalDate dueDate);
 }
