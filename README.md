@@ -93,3 +93,13 @@ GET /api/tasks/{taskId}/dependencies
 ```bash
 DELETE /api/tasks/{taskId}/dependencies/{dependencyId}
 ```
+
+### Notifications
+
+- **Notification System**: Sends notifications for tasks that are either upcoming (due the next day) or overdue (past due date and incomplete).
+
+### Background Scheduler
+
+- **Scheduler**: Runs a background task every day at 8:00 AM to check for tasks that are either:
+    - **Upcoming**: Tasks that are due the next day.
+    - **Overdue**: Tasks that are past their due date and haven't been marked as completed.
