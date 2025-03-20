@@ -33,7 +33,7 @@ public class NotificationService {
             Notification notification = new Notification();
             notification.setMessage("Task " + task.getTitle() + " is due tomorrow.");
             notification.setTask(task);
-            notification.setCreatedAt(LocalDateTime.now()); // Sửa: Dùng LocalDateTime
+            notification.setCreatedAt(LocalDateTime.now());
             notification.setRead(false);
             notificationRepository.save(notification);
         }

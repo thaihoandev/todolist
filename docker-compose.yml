@@ -1,0 +1,17 @@
+
+services:
+  app:
+    build: .
+    container_name: todolist-app
+    ports:
+      - "8080:8080"
+    volumes:
+      - h2data:/data
+    networks:
+      - todolist-network
+
+networks:
+  todolist-network:
+
+volumes:
+  h2data:
