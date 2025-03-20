@@ -15,9 +15,9 @@ This is a Spring Boot application for managing a To-Do List with features like t
 
 Before running the application, ensure you have the following installed:
 
-- **Java 21 or later** (the project uses Java 22 in the logs, but Java 17+ should work).
+- **Java 21 or later** (the project uses Java 22 in the logs).
 - **Maven** (for dependency management and building the project).
-- **H2 Database** (in-memory or file-based).
+- **H2 Database** (file-based).
 - A **code editor** like IntelliJ IDEA or Visual Studio Code.
 
 ## Setup Instructions
